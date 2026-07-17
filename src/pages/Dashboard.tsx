@@ -9,7 +9,7 @@ export default function Dashboard({ setCurrentPage }: DashboardProps) {
   return (
     <div className="p-8 md:p-12 max-w-5xl mx-auto w-full overflow-y-auto">
       <header className="mb-10 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-stone-900 mb-2">Welcome back, Michael</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-900 mb-2">ADC Policy Assistant</h1>
         <p className="text-stone-500 font-medium text-sm">Select a tool to get started</p>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

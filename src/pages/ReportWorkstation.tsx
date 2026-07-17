@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Printer, Copy, Check, RefreshCw, Layers, GripVertical } from 'lucide-react';
+import { Printer, Copy, Check, RefreshCw, Layers, GripVertical, AlertTriangle } from 'lucide-react';
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
+import { generateReports } from '../api';
 
 const ReportBox = ({ title, val, set, onCopy, copied }: any) => (
   <div className="space-y-2">
@@ -37,22 +38,33 @@ const TemplateBtn = ({ label, active, onClick }: any) => (
 
 export default function ReportWorkstation() {
   const [isLoading, setIsLoading] = useState(false);
-  const [rawNotes, setRawNotes] = useState("08:15: Inmate Jackson (ID: 4412) refused verbal command to return to bunk. Cell Block D. Inmate became verbally aggressive. OC spray warned but not used. Sgt. Henderson assisted. Inmate complied at 08:22.");
+  const [rawNotes, setRawNotes] = useState("");
   const [summary, setSummary] = useState("");
   const [incidentReport, setIncidentReport] = useState("");
   const [disciplinaryReport, setDisciplinaryReport] = useState("");
   const [activeForm, setActiveForm] = useState("Incident");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [apiError, setApiError] = useState("");
+  const [charges, setCharges] = useState<string[]>([]);
 
-  const handleGenerateReports = () => {
+  const handleGenerateReports = async () => {
     if (!rawNotes.trim()) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setSummary("Inmate Jackson (4412) engaged in verbal resistance during routine morning housing unit movement at 08:15. Incident resolved through verbal intervention.");
-      setIncidentReport("At approximately 08:15 hours, while conducting housing unit movement, I issued a direct verbal command to Inmate Jackson (4412) to return to his assigned bunk. Inmate refused and became verbally aggressive. I issued a second command. Inmate continued to resist until Sgt. Henderson arrived to assist. No force was used. Area secured at 08:22.");
-      setDisciplinaryReport("Violation of Section 12.1 (Refusal to Obey Verbal Command) and Section 4.2 (Conduct toward Staff). Inmate was informed of pending disciplinary referral.");
+    setApiError("");
+    try {
+      const data = await generateReports(rawNotes);
+      setSummary(data.reports.supervisor_summary || "");
+      setIncidentReport(data.reports.first_person || "");
+      setDisciplinaryReport(data.reports.disciplinary || "");
+      setCharges(data.charges || []);
+      if (data.incident_type) {
+        setActiveForm(data.incident_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+      }
+    } catch (err: any) {
+      setApiError(err.message || "Failed to generate reports. Check your connection and try again.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const copyToClipboard = (text: string, id: string) => {
@@ -92,6 +104,21 @@ export default function ReportWorkstation() {
                     </>
                   )}
                 </button>
+                {apiError && (
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs">
+                    <AlertTriangle size={14} />
+                    <span>{apiError}</span>
+                  </div>
+                )}
+                {charges.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {charges.map((c: string) => (
+                      <span key={c} className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold border border-amber-200">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 space-y-5 pr-1">
