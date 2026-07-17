@@ -1,0 +1,6 @@
+{
+  "name": "PolicyGuard AI",
+  "description": "A high-end Command & Compliance workstation for correctional staff to draft reports and query policies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
